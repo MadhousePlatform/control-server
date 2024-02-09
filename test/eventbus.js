@@ -31,7 +31,7 @@ test('Do not get own events back', () => {
     eventBus.subscribe('test', () => {
         assert.fail('Should not have received this event');
     }, '1');
-    eventBus.publish('test', null, '1');
+    eventBus.publish('test', null, { id: '1' });
 });
 
 test('Recieve the event that is passed', () => {

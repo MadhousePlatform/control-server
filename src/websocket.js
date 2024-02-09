@@ -5,7 +5,6 @@ class WebSocketClient {
     constructor(socket, eventBus, logger) {
         this.socket = socket;
         this.eventBus = eventBus;
-        this.subscriberID = Math.random().toString(36); // This is our unique ID for subscribing to events.
         this.authenticated = false;
         this.logger = logger;
 
@@ -46,23 +45,27 @@ class WebSocketClient {
     onAuth(data) {
         // TODO Implement authentication
         this.authenticated = true;
+        this.id = Math.random().toString(36); // This should come from authentication service. Using something random for now.
+        this.name = Math.random().toString(36); // This should come from authentication service. Using something random for now
+
         this.socket.send(JSON.stringify({ type: 'auth', success: true }));
+        this.eventBus.publish('connected', { type: 'connected', service: this }, this);
     }
 
     onSubscribe(data) {
-        this.eventBus.subscribe(data.channels, this.onEvent.bind(this), this.subscriberID);
+        this.eventBus.subscribe(data.channels, this.onEvent.bind(this), this.id);
     }
 
     onUnsubscribe(data) {
-        this.eventBus.unsubscribe(data.channels, this.subscriberID);
+        this.eventBus.unsubscribe(data.channels, this.id);
     }
 
-    onEvent(event) {
+    onEvent(event, publisher) {
         this.socket.send(JSON.stringify(event));
     }
 
     onData(data) {
-        this.eventBus.publish(data.type, data, this.subscriberID);
+        this.eventBus.publish(data.type, data, this);
     }
 
     onClose() {
@@ -70,7 +73,9 @@ class WebSocketClient {
 
         // Remove all listeners for this client
         this.socket.removeAllListeners();
-        this.eventBus.removeAllListeners(this.subscriberID);
+        this.eventBus.removeAllListeners(this.id);
+
+        this.eventBus.publish('disconnected', { type: 'disconnected', service: this }, this);
     }
 }
 

@@ -10,7 +10,6 @@ class EventBus {
     }
 
     subscribe(event, callback, subscriberID) {
-        // If event is an array, split it into individual events and call subscribe for each one.
         if (Array.isArray(event)) {
             event.forEach(e => this.subscribe(e, callback, subscriberID));
             return;
@@ -31,13 +30,13 @@ class EventBus {
         }
     }
 
-    publish(event, data, subscriberID) {
-        this.logger.info("Publishing event", event, subscriberID);
+    publish(event, data, publisher) {
+        this.logger.info("Publishing event", event, publisher.id);
         if (this.subscribers[event]) {
             this.subscribers[event].forEach(callback => {
                 // Ensure the producer doesn't get their own event back
-                if (callback.subscriberID !== subscriberID) {
-                    callback.callback(data);
+                if (callback.subscriberID !== publisher.id) {
+                    callback.callback(data, publisher);
                 }
             });
         }

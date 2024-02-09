@@ -46,6 +46,19 @@ test.describe('Receiving Message', () => {
             ws.onMessage('{"type": "auth"}');
             assert.ok(called);
         });
+        test('Publishes connected event on successful auth', () => {
+            mockEventBus.publish = (type, data, publisher) => {
+                assert.equal(type, 'connected');
+                assert.equal(data.type, 'connected');
+                assert.equal(data.service, ws);
+                assert.equal(publisher, ws);
+            };
+
+            const ws = new WebSocketClient(mockSocket, mockEventBus, mockLogger);
+            ws.onMessage('{"type": "auth"}');
+
+            mockEventBus.publish = nullMethod;
+        });
     });
 
     test.describe('Handles subscribe messages', () => {
@@ -59,7 +72,7 @@ test.describe('Receiving Message', () => {
         test('Subscribes to channels', () => {
             mockEventBus.subscribe = (channels, _callback, id) => {
                 assert.deepEqual(channels, ['test']);
-                assert.equal(id, ws.subscriberID);
+                assert.equal(id, ws.id);
             };
 
             const ws = new WebSocketClient(mockSocket, mockEventBus, mockLogger);
@@ -81,7 +94,7 @@ test.describe('Receiving Message', () => {
         test('Subscribes to channels', () => {
             mockEventBus.unsubscribe = (channels, id) => {
                 assert.deepEqual(channels, ['test']);
-                assert.equal(id, ws.subscriberID);
+                assert.equal(id, ws.id);
             };
 
             const ws = new WebSocketClient(mockSocket, mockEventBus, mockLogger);
@@ -102,10 +115,11 @@ test.describe('Receiving Message', () => {
         });
         test('Sends message to eventbus after auth', () => {
             const test_message = '{"type": "test_event", "test_field": true}';
-            mockEventBus.publish = (type, data, id) => {
-                assert.equal(type, "test_event");
-                assert.deepEqual(data, { type: "test_event", test_field: true });
-                assert.equal(id, ws.subscriberID);
+            mockEventBus.publish = (type, data, publisher) => {
+                if (type === 'connected') return;
+                assert.ok("test_event", type);
+                assert.equal(ws.id, publisher.id);
+                assert.deepEqual(data, { test_field: true, type: 'test_event' });
             };
 
             const ws = new WebSocketClient(mockSocket, mockEventBus, mockLogger);
@@ -121,7 +135,7 @@ test.describe('Closing Connection', () => {
     test('Removes all event listeners on close', () => {
         let called = false;
         mockEventBus.removeAllListeners = (id) => {
-            assert.equal(id, ws.subscriberID);
+            assert.equal(id, ws.id);
             called = true;
         };
 
@@ -140,5 +154,20 @@ test.describe('Closing Connection', () => {
         ws.onClose();
 
         assert.ok(called);
+    });
+
+    test('Publishes disconnected event on close', () => {
+        mockEventBus.publish = (type, data, publisher) => {
+            if (type === 'connected') return;
+            assert.equal(type, 'disconnected');
+            assert.equal(data.type, 'disconnected');
+            assert.equal(publisher.id, ws.id);
+        };
+
+        const ws = new WebSocketClient(mockSocket, mockEventBus, mockLogger);
+        ws.onMessage('{"type": "auth"}');
+        ws.onClose();
+
+        mockEventBus.publish = nullMethod;
     });
 });
