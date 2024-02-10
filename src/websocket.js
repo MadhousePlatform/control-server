@@ -2,11 +2,12 @@
  * This file contains the handlers for websocket connections. This includes the authentication and the encoding/decoding and routing of messages.
  */
 class WebSocketClient {
-    constructor(socket, eventBus, logger) {
+    constructor(socket, eventBus, logger, auth) {
         this.socket = socket;
         this.eventBus = eventBus;
         this.authenticated = false;
         this.logger = logger;
+        this.auth = auth;
 
         this.socket.on('message', this.onMessage.bind(this));
         this.socket.on('close', this.onClose.bind(this));
@@ -43,21 +44,27 @@ class WebSocketClient {
     }
 
     onAuth(data) {
-        // TODO Implement authentication
+        const client = this.auth.auth(data.token);
+
+        if (!client.success) {
+            this.logger.warn('Invalid authentication attempt', data);
+            this.socket.close();
+            return;
+        }
+
         this.authenticated = true;
-        this.id = Math.random().toString(36); // This should come from authentication service. Using something random for now.
-        this.name = Math.random().toString(36); // This should come from authentication service. Using something random for now
+        this.client = client;
 
         this.socket.send(JSON.stringify({ type: 'auth', success: true }));
         this.eventBus.publish('connected', { type: 'connected', service: this }, this);
     }
 
     onSubscribe(data) {
-        this.eventBus.subscribe(data.channels, this.onEvent.bind(this), this.id);
+        this.eventBus.subscribe(data.channels, this.onEvent.bind(this), this.client.id);
     }
 
     onUnsubscribe(data) {
-        this.eventBus.unsubscribe(data.channels, this.id);
+        this.eventBus.unsubscribe(data.channels, this.client.id);
     }
 
     onEvent(event, publisher) {
@@ -73,9 +80,17 @@ class WebSocketClient {
 
         // Remove all listeners for this client
         this.socket.removeAllListeners();
-        this.eventBus.removeAllListeners(this.id);
 
-        this.eventBus.publish('disconnected', { type: 'disconnected', service: this }, this);
+        if (this.authenticated) {
+            this.eventBus.removeAllListeners(this.id);
+            this.eventBus.publish('disconnected', { type: 'disconnected', service: this }, this);
+        }
+    }
+
+    get id() {
+        if (this.client) {
+            return this.client.id;
+        }
     }
 }
 
