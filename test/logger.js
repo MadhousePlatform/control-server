@@ -30,7 +30,7 @@ test.describe('warn', () => {
     });
 
     test('Can warn multiple messages', () => {
-        const original_logger = console.warn; deepStrictEqual
+        const original_logger = console.warn;
         console.warn = mock.fn((...message) => { assert.deepStrictEqual(message, ['Test warn message', 'warn another']) });
         my_logger.warn('Test warn message', 'warn another');
         console.warn = original_logger;
