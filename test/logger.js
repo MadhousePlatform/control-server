@@ -15,7 +15,7 @@ test.describe('log', () => {
 
     test('Can log multiple messages', () => {
         const original_logger = console.log;
-        console.log = mock.fn((...message) => { assert.deepEqual(message, ['Test log message', 'log another']) });
+        console.log = mock.fn((...message) => { assert.deepStrictEqual(message, ['Test log message', 'log another']) });
         my_logger.log('Test log message', 'log another');
         console.log = original_logger;
     });
@@ -30,8 +30,8 @@ test.describe('warn', () => {
     });
 
     test('Can warn multiple messages', () => {
-        const original_logger = console.warn;
-        console.warn = mock.fn((...message) => { assert.deepEqual(message, ['Test warn message', 'warn another']) });
+        const original_logger = console.warn; deepStrictEqual
+        console.warn = mock.fn((...message) => { assert.deepStrictEqual(message, ['Test warn message', 'warn another']) });
         my_logger.warn('Test warn message', 'warn another');
         console.warn = original_logger;
     });
@@ -47,7 +47,7 @@ test.describe('error', () => {
 
     test('Can error multiple messages', () => {
         const original_logger = console.error;
-        console.error = mock.fn((...message) => { assert.deepEqual(message, ['Test error message', 'error another']) });
+        console.error = mock.fn((...message) => { assert.deepStrictEqual(message, ['Test error message', 'error another']) });
         my_logger.error('Test error message', 'error another');
         console.error = original_logger;
     });
@@ -63,7 +63,7 @@ test.describe('info', () => {
 
     test('Can info multiple messages', () => {
         const original_logger = console.info;
-        console.info = mock.fn((...message) => { assert.deepEqual(message, ['Test info message', 'info another']) });
+        console.info = mock.fn((...message) => { assert.deepStrictEqual(message, ['Test info message', 'info another']) });
         my_logger.info('Test info message', 'info another');
         console.info = original_logger;
     });

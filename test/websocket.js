@@ -71,7 +71,7 @@ test.describe('Receiving Message', () => {
         });
         test('Subscribes to channels', () => {
             mockEventBus.subscribe = (channels, _callback, id) => {
-                assert.deepEqual(channels, ['test']);
+                assert.deepStrictEqual(channels, ['test']);
                 assert.equal(id, ws.id);
             };
 
@@ -93,7 +93,7 @@ test.describe('Receiving Message', () => {
         });
         test('Subscribes to channels', () => {
             mockEventBus.unsubscribe = (channels, id) => {
-                assert.deepEqual(channels, ['test']);
+                assert.deepStrictEqual(channels, ['test']);
                 assert.equal(id, ws.id);
             };
 
@@ -119,7 +119,7 @@ test.describe('Receiving Message', () => {
                 if (type === 'connected') return;
                 assert.ok("test_event", type);
                 assert.equal(ws.id, publisher.id);
-                assert.deepEqual(data, { test_field: true, type: 'test_event' });
+                assert.deepStrictEqual(data, { test_field: true, type: 'test_event' });
             };
 
             const ws = new WebSocketClient(mockSocket, mockEventBus, mockLogger);
