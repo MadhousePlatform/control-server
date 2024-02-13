@@ -13,5 +13,9 @@
   "license": "ISC",
   "devDependencies": {
     "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "@fastify/websocket": "^8.3.1",
+    "fastify": "^4.26.1"
   }
 }

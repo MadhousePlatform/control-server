@@ -38,7 +38,7 @@ class WebSocketClient {
         } else if (this.authenticated && data.type != 'auth') {
             this.onData(data);
         } else {
-            this.logger.warn('Invalid message received (unauthenticated and non-authentication message)', data);
+            this.logger.warn('Invalid message received (message out of order)', data);
             this.socket.close();
         }
     }
